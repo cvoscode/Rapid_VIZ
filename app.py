@@ -4,10 +4,13 @@ if not sys.warnoptions:
     warnings.simplefilter('ignore')
 import os
 from dash import Input,State,Output,dcc,html,ctx,dash_table,Dash
+from dash_bootstrap_templates import load_figure_template
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc 
 import plotly.express as px
 import plotly.offline as offline
+import plotly.graph_objects as go
+import plotly.io as pio
 import pandas as pd 
 from flask import Flask
 import base64
@@ -18,11 +21,11 @@ from utils.read_data import read_data
 dirname=os.path.dirname(__file__)
 
 #-------------------Styling---------------------#
-external_stylesheets, figure_template,colors,min_style=style_app()
+external_stylesheets,colors,min_style,color_scale=style_app()
+figure_template=load_figure_template("sketchy")
 image_path=os.path.join(dirname,os.path.normpath('utils/images/logo.png'))
 image=base64.b64encode(open(image_path,'rb').read())
-
-
+pio.templates.default = "sketchy+draft"
 
 #app=Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -120,9 +123,8 @@ def create_Tab8(df):
     dbc.Row([html.H5('Correlation Type'),dcc.Dropdown(options=['pearson','spearman','kendall'],id='Corr-type-dropdown',placeholder='Select Correlation Type',style=min_style),]),
     dbc.Row([dcc.Input(id='Corr-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save Correlations Plot',id='Corr-save-plot',style=min_style)])
     ])
-#TODO Data Export
 def create_Export():
-    return dcc.Tab(label='Correlations',id='Corr-tab',children=[dbc.Row([dcc.Input(id='Export-name',type='text',placeholder='Name of the Data Export',debounce=True,style=min_style),html.Button('Export Data',id='Export Data',style=min_style)])])
+    return dcc.Tab(label='Export Data',id='Export-tab',children=[dbc.Row([dcc.Input(id='Export-name',type='text',placeholder='Name of the Data Export',debounce=True,style=min_style),html.Button('Export Data',id='Export Data',style=min_style),html.Div(id='Export-div')])])
 #----------------------------------------------------------------------------
 
 app=Dash(__name__,external_stylesheets=[dbc.themes.SKETCHY],suppress_callback_exceptions=True)
@@ -134,7 +136,7 @@ app.layout = dbc.Container([
                     #Table and GlobalSettings
                     dbc.Row([
                             dcc.Tabs(id='Table_Settings',children=[
-                                    #input and casting #TODO Scaling, column, renaming, label encoding 
+                                    #TODO displaying data types
                                     dcc.Tab(label='Load Data and gernal setting',children=[
                                             dbc.Row([dbc.Col([dbc.Row(dcc.Input(id='Path',type='text',placeholder='Path to data (supportes *.xlsx,*.parquet,*.csv)',debounce=True,style=min_style)),dbc.Row(dcc.Input(id='Save_Path',type='text',placeholder='Path to where the plots shall be saved',debounce=True,style=min_style)),dbc.Row(html.Button('Load Data',id='Load-Data-button',n_clicks=0,style=min_style)),dbc.Row(dcc.Checklist(['Automatically convert datatypes'],['Automatically convert datatypes'],id='change_dtypes',style=min_style)),dbc.Row(html.Div(id='loading_info',style=min_style))]),
                                                     dbc.Col([dbc.Row(children=[dcc.Markdown('Welcome to Christoph´s Rapid Viz, a web based tool to visualize your Data! \n\n To start please insert the path of data you want to visualize and click the Button Load Data! \n\n PS: If you want to clear a dropdown, just use Backspace or Del',style={'text-align':'center'})]),
@@ -181,8 +183,7 @@ def load_data(Path,n_clicks,change_dtypes):
 def update_trans_layout(data):
     if ctx.triggered_id==('store'):
         if data:
-            df=pd.DataFrame.from_records(data)
-            print(df)                  
+            df=pd.DataFrame.from_records(data)                 
             return  [dbc.Row(create_table(df,id='trans_table',renameable=True)),
                  dbc.Row([dbc.Col([html.H4('Transform Columns'),dbc.Row([dcc.Dropdown(options=df.columns,id='trans-dropdown',placeholder='Select Column to transform',style=min_style)]),dbc.Row([dbc.Col(html.Button('Label Encode Column',id='label-encode-button',style=min_style)),dbc.Col(html.Button('Scale Column Min/Max',id='scale-min/max-button',style=min_style)),dbc.Col(html.Button('Standardize Column',id='standardize-button',style=min_style))]),dbc.Row([dcc.Dropdown(options=['object','int64','float64','datetime64[ns]','bool'],id='dtypes-dropdown',placeholder='Select Column to transform',style=min_style),html.Button('Change Data Type of the selected column',id='change-dtype-button',style=min_style),html.Div(id='dtype-div',style=min_style)])]),
                           dbc.Col([dbc.Row(dcc.Checklist(['Scale all columns Min/Max','Standardize all columns'],[],id='scale-checklist'),style=min_style),dbc.Row(html.Button('Confirm Transformation',id='confirm-trans-button'),style=min_style)])])]
@@ -227,14 +228,13 @@ def transform_data(data,column,label,standard,scale,checklist,confirm,change_dty
             return dff.to_dict("records"),html.H6(children=f'The Data was transformed sucessfully! You can now proceed to the Data Exploration Tab',style={'color':f'{colors["Sucess"]}'})
         else: return df.to_dict("records"),html.H6(children=f'The Data was transformed sucessfully! You can now proceed to the Data Exploration Tab',style={'color':f'{colors["Sucess"]}'})
 
-# Muss umgeschriben werden auf Button fertig von Data Transformation
 @app.callback(Output('Data-exp','children'),
     State('trans_table','data'),
     Input('confirm-trans-button','n_clicks'))
 def update_table(data,confirm):
     if data:
         df=pd.DataFrame.from_records(data)
-        return dbc.Row(create_table(df,id='data_table',renameable=False)),dbc.Row(dcc.Tabs(id='graphs',children=[create_Tab1(df),create_Tab2(df),create_Tab3(df),create_Tab4(df),create_Tab5(df),create_Tab6(df),create_Tab8(df)])),
+        return dbc.Row(create_table(df,id='data_table',renameable=False)),dbc.Row(dcc.Tabs(id='graphs',children=[create_Tab1(df),create_Tab2(df),create_Tab3(df),create_Tab4(df),create_Tab5(df),create_Tab6(df),create_Tab8(df),create_Export()])),
     
 #--------------------------Graph---------callbacks-------------
 @app.callback(Output('stats-table','data'),
@@ -272,7 +272,7 @@ def export_Stats(n_clicks,name,data,save_path):
 
 @app.callback(
     Output('PC-Graph','figure'),
-    State('trans_table','data'),
+    State('data_table','data'),
     Input('data_table','derived_virtual_data'),
     Input('data_table','derived_virtual_selected_rows'),
     Input('PC-color-dropdown','value'),
@@ -288,7 +288,7 @@ def update_PC_graph(data,rows,derived_virtual_selected_rows,color_column,up,low,
         derived_virtual_selected_rows=[]
     dff=df if rows is None else pd.DataFrame(rows)
     #TODO upper value and lower value are not in use right now
-    fig=px.parallel_coordinates(dff,color=color_column)
+    fig=px.parallel_coordinates(dff,color=color_column,template=figure_template,color_continuous_scale=color_scale)
     if title:
         fig.update_layout(title=title)
     if ctx.triggered_id=='PC-save-plot':
@@ -297,7 +297,7 @@ def update_PC_graph(data,rows,derived_virtual_selected_rows,color_column,up,low,
 
 @app.callback(
     Output('Col-Graph','figure'),
-    State('trans_table','data'),
+    State('data_table','data'),
     Input('data_table','derived_virtual_data'),
     Input('data_table','derived_virtual_selected_rows'),
     Input('Col-color-dropdown','value'),
@@ -313,7 +313,7 @@ def update_Col_graph(data,rows,derived_virtual_selected_rows,color_column,x,patt
         if derived_virtual_selected_rows is None:
             derived_virtual_selected_rows=[]
         dff=df if rows is None else pd.DataFrame(rows)
-        fig=px.histogram(dff,x=x,color=color_column,marginal='box',pattern_shape=pattern)
+        fig=px.histogram(dff,x=x,color=color_column,marginal='box',pattern_shape=pattern,template=figure_template,color_discrete_sequence=color_scale)
         if title:
             fig.update_layout(title=title)
         if ctx.triggered_id=='Col-save-plot':
@@ -323,7 +323,7 @@ def update_Col_graph(data,rows,derived_virtual_selected_rows,color_column,x,patt
 
 @app.callback(
     Output('SC-Graph','figure'),
-    State('trans_table','data'),
+    State('data_table','data'),
     Input('data_table','derived_virtual_data'),
     Input('data_table','derived_virtual_selected_rows'),
     Input('SC-color-dropdown','value'),
@@ -340,7 +340,7 @@ def update_SC_graph(data,rows,derived_virtual_selected_rows,color_column,x,y,siz
         if derived_virtual_selected_rows is None:
             derived_virtual_selected_rows=[]
         dff=df if rows is None else pd.DataFrame(rows)
-        fig=px.scatter(dff,x=x,y=y,color=color_column,trendline='ols',size=size,marginal_x='box',marginal_y='box')
+        fig=px.scatter(dff,x=x,y=y,color=color_column,trendline='ols',size=size,marginal_x='box',marginal_y='box',template=figure_template,color_continuous_scale=color_scale)
         if title:
             fig.update_layout(title=title)
         if ctx.triggered_id=='SC-save-plot':
@@ -350,7 +350,7 @@ def update_SC_graph(data,rows,derived_virtual_selected_rows,color_column,x,y,siz
 
 @app.callback(
     Output('SC3D-Graph','figure'),
-    State('trans_table','data'),
+    State('data_table','data'),
     Input('data_table','derived_virtual_data'),
     Input('data_table','derived_virtual_selected_rows'),
     Input('SC3D-color-dropdown','value'),
@@ -368,7 +368,7 @@ def update_SC3D_graph(data,rows,derived_virtual_selected_rows,color_column,x,y,z
         if derived_virtual_selected_rows is None:
             derived_virtual_selected_rows=[]
         dff=df if rows is None else pd.DataFrame(rows)
-        fig=px.scatter_3d(dff,x=x,y=y,z=z,color=color_column,size=size)
+        fig=px.scatter_3d(dff,x=x,y=y,z=z,color=color_column,size=size,template=figure_template,color_continuous_scale=color_scale)
         if title:
             fig.update_layout(title=title)
         if ctx.triggered_id=='SC3D-save-plot':
@@ -378,7 +378,7 @@ def update_SC3D_graph(data,rows,derived_virtual_selected_rows,color_column,x,y,z
         
 @app.callback(
     Output('Ridge-Graph','figure'),
-    State('trans_table','data'),
+    State('data_table','data'),
     Input('data_table','derived_virtual_data'),
     Input('data_table','derived_virtual_selected_rows'),
     Input('Ridge-color-dropdown','value'),
@@ -395,7 +395,7 @@ def update_Ridge_graph(data,rows,derived_virtual_selected_rows,color_column,x,y,
             derived_virtual_selected_rows=[]
         dff=df if rows is None else pd.DataFrame(rows)
         #maybe use https://github.com/tpvasconcelos/ridgeplot
-        fig=px.violin(dff,x=x,y=y,orientation='h',color=color_column).update_traces(side='positive',width=8)
+        fig=px.violin(dff,x=x,y=y,orientation='h',color=color_column,template=figure_template,color_discrete_sequence=color_scale).update_traces(side='positive',width=8)
         if title:
             fig.update_layout(title=title)
         if ctx.triggered_id=='Ridge-save-plot':
@@ -405,7 +405,7 @@ def update_Ridge_graph(data,rows,derived_virtual_selected_rows,color_column,x,y,
 
 @app.callback(
     Output('Corr-Graph','figure'),
-    State('trans_table','data'),
+    State('data_table','data'),
     Input('data_table','derived_virtual_data'),
     Input('data_table','derived_virtual_selected_rows'),
     Input('Corr-type-dropdown','value'),
@@ -420,7 +420,7 @@ def update_Corr_graph(data,rows,derived_virtual_selected_rows,corr_type,title,sa
     dff=df if rows is None else pd.DataFrame(rows)
     if corr_type:
         cor=dff.corr(corr_type)
-        fig=px.imshow(cor,text_auto=True)
+        fig=px.imshow(cor,text_auto=True,template=figure_template,color_continuous_scale=color_scale)
         if title:
             fig.update_layout(title=title)
         if ctx.triggered_id=='Corr-save-plot':
@@ -428,7 +428,41 @@ def update_Corr_graph(data,rows,derived_virtual_selected_rows,corr_type,title,sa
         return fig            
     else: raise PreventUpdate
 
-
+@app.callback(
+        Output('Export-div','children'),
+    Input('Export Data','n_clicks'),
+    State('Export-name','value'),
+    Input('data_table','derived_virtual_data'),
+    Input('data_table','derived_virtual_selected_rows'),
+    State('data_table','data'),
+    State('Save_Path','value'),
+)
+def export_data(export,name,rows,derived_virtual_selected_rows,data,save_path):
+    if ctx.triggered_id=='Export Data':
+        if name:
+            df=pd.DataFrame.from_records(data)
+            if derived_virtual_selected_rows is None:
+                derived_virtual_selected_rows=[]
+            dff=df if rows is None else pd.DataFrame(rows)
+            filename,ext=os.path.splitext(name)
+            if save_path:
+                path=os.path.join(save_path,name)
+            else:
+                path=name
+            if ext:
+                try:
+                    if ext=='.csv':
+                        dff.to_csv(path)
+                    elif ext=='.parquet':
+                        dff.to_parquet(path)
+                    elif ext=='.xlsx':
+                        dff.to_excel(path)
+                    return html.H6(children=f'The Data was exportet to {ext} sucessfully! You can find the export under "{path}"',style={'color':f'{colors["Sucess"]}'})
+                except:
+                    return html.H6(children=f'The Export failed! Please provide a file name with the targeted extension. (Supportet are: *.xlsx,*.parquet,*.csv) ',style={'color':f'{colors["Error"]}'})
+            else: html.H6(children=f'Please provide a file name with the targeted extension. (Supportet are: *.xlsx,*.parquet,*.csv)',style={'color':f'{colors["Error"]}'})
+        else:
+            return html.H6(children=f'Please provide a file name with the targeted extension. (Supportet are: *.xlsx,*.parquet,*.csv)',style={'color':f'{colors["Error"]}'})
 
 if __name__ == "__main__":
     app.run(debug=True)
