@@ -14,7 +14,7 @@ import base64
 import numpy as np
 from sklearn import preprocessing
 from utils.styling import style_app
-from utils.read_data import read_data,px_data
+from utils.read_data import read_data
 dirname=os.path.dirname(__file__)
 
 #-------------------Styling---------------------#
@@ -43,7 +43,7 @@ def create_table(df,id,renameable,pagesize=3):
         style_table={"overflowX": "auto"},
         row_selectable="multi"),className='dbc-row-selectable')
 def cerate_Numeric(id,placeholder):
-    return dbc.Input(id=id,type='Number',placeholder=placeholder,debounce=True)
+    return dbc.Input(id=id,type='Number',placeholder=placeholder,debounce=True,style=min_style)
 
 def save_plot(fig,name,save_path):
     if save_path:
@@ -57,26 +57,26 @@ def create_Tab1(df):
     dff=df.describe(include='all')
     dff.insert(0,'statistical values',dff.index)
     return dcc.Tab(label='Statistics',id='Col-tab',children=[dbc.Row(create_table(dff,'stats-table',False,pagesize=12)),
-                                                             dbc.Row(dcc.Input(id='stats-name',type='text',placeholder='Name of the export',debounce=True)),
-                                                             dbc.Row(html.Button('Export Statistics as csv',id='export-stats')),
-                                                             dbc.Row(html.Div(id='stat-export'))])    
+                                                             dbc.Row(dcc.Input(id='stats-name',type='text',placeholder='Name of the export',debounce=True,style=min_style)),
+                                                             dbc.Row(html.Button('Export Statistics as csv',id='export-stats',style=min_style)),
+                                                             dbc.Row(html.Div(id='stat-export',style=min_style))])    
 def create_Tab2(df):
     columns=df.columns.to_list()
     return dcc.Tab(label='Histogram',id='Col-tab',children=[
     dbc.Row(dcc.Loading(id='Col-Loading',children=[dcc.Graph(id='Col-Graph',figure={})])),
     dbc.Row([html.H4('Plot Settings'),html.Hr()]),
-    dbc.Row([html.H5('Column'),dcc.Dropdown(options=columns,id='Col-x-dropdown',placeholder='Select Column for Histogram'),]),
-    dbc.Row([html.H5('Color and Pattern'),dcc.Dropdown(options=columns,id='Col-color-dropdown',placeholder='Select Color Column'),dcc.Dropdown(options=columns,id='Col-pattern-dropdown',placeholder='Select Pattern Column')]),
-    dbc.Row([dcc.Input(id='Col-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True),html.Button('Save Histogram Plot',id='Col-save-plot')])
+    dbc.Row([html.H5('Column'),dcc.Dropdown(options=columns,id='Col-x-dropdown',placeholder='Select Column for Histogram',style=min_style),]),
+    dbc.Row([html.H5('Color and Pattern'),dcc.Dropdown(options=columns,id='Col-color-dropdown',placeholder='Select Color Column',style=min_style),dcc.Dropdown(options=columns,id='Col-pattern-dropdown',placeholder='Select Pattern Column',style=min_style)]),
+    dbc.Row([dcc.Input(id='Col-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save Histogram Plot',id='Col-save-plot',style=min_style)])
         	])
 def create_Tab3(df):
     num_columns=df.select_dtypes(include=np.number).columns.to_list()
     return dcc.Tab(label='Parallel Coordinates',id='PC-tab',children=[
     dbc.Row(dcc.Loading(id='PC-Loading',children=[dcc.Graph(id='PC-Graph',figure={})])),
     dbc.Row([html.H4('Plot Settings'),html.Hr()]),
-    dbc.Row([html.H5('Color'),dcc.Dropdown(options=num_columns,id='PC-color-dropdown',placeholder='Select Color Column'),]),
+    dbc.Row([html.H5('Color'),dcc.Dropdown(options=num_columns,id='PC-color-dropdown',placeholder='Select Color Column',style=min_style),]),
     dbc.Row([html.H5('Lower and Upper Bound'),cerate_Numeric('PC-Lower-Bound',placeholder='Lower Bound (without function)'),cerate_Numeric('PC-Upper-Bound',placeholder='Upper Bound (without function)')]),
-    dbc.Row([dcc.Input(id='PC-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True),html.Button('Save Parallel Coordinates Plot',id='PC-save-plot')])
+    dbc.Row([dcc.Input(id='PC-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save Parallel Coordinates Plot',id='PC-save-plot',style=min_style)])
         	])
 def create_Tab4(df):
     num_columns=df.select_dtypes(include=np.number).columns.to_list()
@@ -84,9 +84,9 @@ def create_Tab4(df):
     return dcc.Tab(label='Scatterplot 2D',id='SC-tab',children=[
     dbc.Row(dcc.Loading(id='SC-Loading',children=[dcc.Graph(id='SC-Graph',figure={})])),
     dbc.Row([html.H4('Plot Settings'),html.Hr()]),
-    dbc.Row([html.H5('Columns'),dcc.Dropdown(options=num_columns,id='SC-x-dropdown',placeholder='Select the x-Column'),dcc.Dropdown(options=num_columns,id='SC-y-dropdown',placeholder='Select the y-Column')]),
-    dbc.Row([html.H5('Color and Size'),dcc.Dropdown(options=columns,id='SC-color-dropdown',placeholder='Select Color Column'),dcc.Dropdown(options=num_columns,id='SC-size-dropdown',placeholder='Select Size Column')]),
-    dbc.Row([dcc.Input(id='SC-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True),html.Button('Save Scatter Plot',id='SC-save-plot')])
+    dbc.Row([html.H5('Columns'),dcc.Dropdown(options=num_columns,id='SC-x-dropdown',placeholder='Select the x-Column',style=min_style),dcc.Dropdown(options=num_columns,id='SC-y-dropdown',placeholder='Select the y-Column',style=min_style)]),
+    dbc.Row([html.H5('Color and Size'),dcc.Dropdown(options=columns,id='SC-color-dropdown',placeholder='Select Color Column',style=min_style),dcc.Dropdown(options=num_columns,id='SC-size-dropdown',placeholder='Select Size Column',style=min_style)]),
+    dbc.Row([dcc.Input(id='SC-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save Scatter Plot',id='SC-save-plot',style=min_style)])
         	])
 def create_Tab5(df):
     num_columns=df.select_dtypes(include=np.number).columns.to_list()
@@ -94,9 +94,9 @@ def create_Tab5(df):
     return dcc.Tab(label='Scatterplot 3D',id='SC3D-tab',children=[
     dbc.Row(dcc.Loading(id='SC3D-Loading',children=[dcc.Graph(id='SC3D-Graph',figure={})])),
     dbc.Row([html.H4('Plot Settings'),html.Hr()]),
-    dbc.Row([html.H5('Columns'),dcc.Dropdown(options=num_columns,id='SC3D-x-dropdown',placeholder='Select the x-Column'),dcc.Dropdown(options=num_columns,id='SC3D-y-dropdown',placeholder='Select the y-Column'),dcc.Dropdown(options=num_columns,id='SC3D-z-dropdown',placeholder='Select the z-Column')]),
-    dbc.Row([html.H5('Color and Pattern'),dcc.Dropdown(options=columns,id='SC3D-color-dropdown',placeholder='Select Color Column'),dcc.Dropdown(options=num_columns,id='SC3D-size-dropdown',placeholder='Select Size Column')]),
-    dbc.Row([dcc.Input(id='SC3D-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True),html.Button('Save 3D Scatter Plot',id='SC3D-save-plot')])
+    dbc.Row([html.H5('Columns'),dcc.Dropdown(options=num_columns,id='SC3D-x-dropdown',placeholder='Select the x-Column',style=min_style),dcc.Dropdown(options=num_columns,id='SC3D-y-dropdown',placeholder='Select the y-Column',style=min_style),dcc.Dropdown(options=num_columns,id='SC3D-z-dropdown',placeholder='Select the z-Column',style=min_style)]),
+    dbc.Row([html.H5('Color and Pattern'),dcc.Dropdown(options=columns,id='SC3D-color-dropdown',placeholder='Select Color Column',style=min_style),dcc.Dropdown(options=num_columns,id='SC3D-size-dropdown',placeholder='Select Size Column',style=min_style)]),
+    dbc.Row([dcc.Input(id='SC3D-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save 3D Scatter Plot',id='SC3D-save-plot',style=min_style)])
     ])
 
 
@@ -106,9 +106,9 @@ def create_Tab6(df):
     return dcc.Tab(label='Ridge',id='Ridge-tab',children=[
     dbc.Row(dcc.Loading(id='Ridge-Loading',children=[dcc.Graph(id='Ridge-Graph',figure={})])),
     dbc.Row([html.H4('Plot Settings'),html.Hr()]),
-    dbc.Row([html.H5('Columns'),dcc.Dropdown(options=columns,id='Ridge-x-dropdown',placeholder='Select the x-Column'),dcc.Dropdown(options=columns,id='Ridge-y-dropdown',placeholder='Select the y-Column')]),
-    dbc.Row([html.H5('Color'),dcc.Dropdown(options=columns,id='Ridge-color-dropdown',placeholder='Select Color Column')]),
-    dbc.Row([dcc.Input(id='Ridge-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True),html.Button('Save 3D Scatter Plot',id='Ridge-save-plot')])
+    dbc.Row([html.H5('Columns'),dcc.Dropdown(options=columns,id='Ridge-x-dropdown',placeholder='Select the x-Column',style=min_style),dcc.Dropdown(options=columns,id='Ridge-y-dropdown',placeholder='Select the y-Column',style=min_style)]),
+    dbc.Row([html.H5('Color'),dcc.Dropdown(options=columns,id='Ridge-color-dropdown',placeholder='Select Color Column',style=min_style)]),
+    dbc.Row([dcc.Input(id='Ridge-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save 3D Scatter Plot',id='Ridge-save-plot',style=min_style)])
     ])
 
 #Tab7=dcc.Tab(label='Pareto Analysis ABC Analyse',id='Pareto-tab',children=[html.H1('Test3')])
@@ -117,10 +117,12 @@ def create_Tab8(df):
     return dcc.Tab(label='Correlations',id='Corr-tab',children=[
     dbc.Row(dcc.Loading(id='Corr-Loading',children=[dcc.Graph(id='Corr-Graph',figure={})])),
     dbc.Row([html.H4('Plot Settings'),html.Hr()]),
-    dbc.Row([html.H5('Correlation Type'),dcc.Dropdown(options=['pearson','spearman','kendall'],id='Corr-type-dropdown',placeholder='Select Correlation Type'),]),
-    dbc.Row([dcc.Input(id='Corr-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True),html.Button('Save Correlations Plot',id='Corr-save-plot')])
+    dbc.Row([html.H5('Correlation Type'),dcc.Dropdown(options=['pearson','spearman','kendall'],id='Corr-type-dropdown',placeholder='Select Correlation Type',style=min_style),]),
+    dbc.Row([dcc.Input(id='Corr-name',type='text',placeholder='Input Plot Title (This is also the file name when saving)',debounce=True,style=min_style),html.Button('Save Correlations Plot',id='Corr-save-plot',style=min_style)])
     ])
-
+#TODO Data Export
+def create_Export():
+    return dcc.Tab(label='Correlations',id='Corr-tab',children=[dbc.Row([dcc.Input(id='Export-name',type='text',placeholder='Name of the Data Export',debounce=True,style=min_style),html.Button('Export Data',id='Export Data',style=min_style)])])
 #----------------------------------------------------------------------------
 
 app=Dash(__name__,external_stylesheets=[dbc.themes.SKETCHY],suppress_callback_exceptions=True)
@@ -134,7 +136,7 @@ app.layout = dbc.Container([
                             dcc.Tabs(id='Table_Settings',children=[
                                     #input and casting #TODO Scaling, column, renaming, label encoding 
                                     dcc.Tab(label='Load Data and gernal setting',children=[
-                                            dbc.Row([dbc.Col([dbc.Row(dcc.Input(id='Path',type='text',placeholder='Path to data (supportes *.xlsx,*.parquet,*.csv)',value=r'C:\Python\Christophs_Rapid_Viz\test_data.csv',debounce=True,style=min_style)),dbc.Row(dcc.Input(id='Save_Path',type='text',placeholder='Path to where the plots shall be saved',debounce=True,style=min_style)),dbc.Row(html.Button('Load Data',id='Load-Data-button',n_clicks=0,style=min_style)),dbc.Row(dcc.Checklist(['Automatically convert datatypes'],['Automatically convert datatypes'],id='change_dtypes',inline=True)),dbc.Row(html.Div(id='loading_info'))]),
+                                            dbc.Row([dbc.Col([dbc.Row(dcc.Input(id='Path',type='text',placeholder='Path to data (supportes *.xlsx,*.parquet,*.csv)',debounce=True,style=min_style)),dbc.Row(dcc.Input(id='Save_Path',type='text',placeholder='Path to where the plots shall be saved',debounce=True,style=min_style)),dbc.Row(html.Button('Load Data',id='Load-Data-button',n_clicks=0,style=min_style)),dbc.Row(dcc.Checklist(['Automatically convert datatypes'],['Automatically convert datatypes'],id='change_dtypes',style=min_style)),dbc.Row(html.Div(id='loading_info',style=min_style))]),
                                                     dbc.Col([dbc.Row(children=[dcc.Markdown('Welcome to Christoph´s Rapid Viz, a web based tool to visualize your Data! \n\n To start please insert the path of data you want to visualize and click the Button Load Data! \n\n PS: If you want to clear a dropdown, just use Backspace or Del',style={'text-align':'center'})]),
                                                             dbc.Row(html.Img(src=app.get_asset_url('pexels-anna-nekrashevich-6802049.jpg'),style={'height':'80%','width':'80%','display':'block','margin-left':'auto','margin-right':'auto',})),]
                                                             ),]),]),
@@ -158,8 +160,9 @@ def load_data(Path,n_clicks,change_dtypes):
     if n_clicks and ctx.triggered_id=='Load-Data-button':
         if Path:
             try:
-                df=px_data()
-                #df=read_data(Path)
+                #df=px_data()
+                Path=Path.strip('\"')
+                df=read_data(os.path.normpath(Path))
             except:
                 return [{},html.H6(children='The data was not loaded sucessfully! It seems the format you provided is not supported, the data is corrupt, or the path is not valid!',style={'color':f'{colors["Error"]}'})]    
             #check box
@@ -172,45 +175,57 @@ def load_data(Path,n_clicks,change_dtypes):
 
 
 # callbacks for Data Transformation Layout
+#TODO build trasnrom Columns on trans_table
 @app.callback(Output('Data-trans','children'),
     Input('store','data'),prevent_initial_call=True)
 def update_trans_layout(data):
     if ctx.triggered_id==('store'):
         if data:
-            df=pd.DataFrame.from_records(data)                  
+            df=pd.DataFrame.from_records(data)
+            print(df)                  
             return  [dbc.Row(create_table(df,id='trans_table',renameable=True)),
-                 dbc.Row([dbc.Col([html.H4('Transform Columns'),dcc.Dropdown(options=df.columns,id='trans-dropdown'),html.Button('Label Encode Column',id='label-encode-button'),html.Button('Scale Column Min/Max',id='scale-min/max-button'),html.Button('Standardize Column',id='standardize-button'),]),
-                          dbc.Col([dcc.Checklist(['Scale all columns Min/Max','Standardize all columns'],[],id='scale-checklist',labelStyle={'display': 'inline-block'}),html.Button('Confirm Transformation',id='confirm-trans-button')])])]
+                 dbc.Row([dbc.Col([html.H4('Transform Columns'),dbc.Row([dcc.Dropdown(options=df.columns,id='trans-dropdown',placeholder='Select Column to transform',style=min_style)]),dbc.Row([dbc.Col(html.Button('Label Encode Column',id='label-encode-button',style=min_style)),dbc.Col(html.Button('Scale Column Min/Max',id='scale-min/max-button',style=min_style)),dbc.Col(html.Button('Standardize Column',id='standardize-button',style=min_style))]),dbc.Row([dcc.Dropdown(options=['object','int64','float64','datetime64[ns]','bool'],id='dtypes-dropdown',placeholder='Select Column to transform',style=min_style),html.Button('Change Data Type of the selected column',id='change-dtype-button',style=min_style),html.Div(id='dtype-div',style=min_style)])]),
+                          dbc.Col([dbc.Row(dcc.Checklist(['Scale all columns Min/Max','Standardize all columns'],[],id='scale-checklist'),style=min_style),dbc.Row(html.Button('Confirm Transformation',id='confirm-trans-button'),style=min_style)])])]
                
 @app.callback(
         Output('trans_table','data'),
+        Output('dtype-div','children'),
         State('trans_table','data'),
         State('trans-dropdown','value'),
         Input('label-encode-button','n_clicks'),
         Input('standardize-button','n_clicks'),
         Input('scale-min/max-button','n_clicks'),
         State('scale-checklist','value'),
-        Input('confirm-trans-button','n_clicks')
+        Input('confirm-trans-button','n_clicks'),
+        Input('change-dtype-button','n_clicks'),
+        State('dtypes-dropdown','value')
         ,prevent_initial_call=True)
-def transform_data(data,column,label,standard,scale,checklist,confirm):
+def transform_data(data,column,label,standard,scale,checklist,confirm,change_dtypes_button,dtype):
     df=pd.DataFrame.from_records(data)
-    if ctx.triggered_id=='label-encode-button':
-        df[column]=preprocessing.LabelEncoder().fit_transform(df[column])
-        return df.to_dict("records")
-    if ctx.triggered_id=='standardize-button':
-        df[column]=preprocessing.StandardScaler().fit_transform(df[column].values.reshape(-1, 1))
-        return df.to_dict("records")
-    if ctx.triggered_id=='scale-min/max-button':
-        df[column]=preprocessing.MinMaxScaler().fit_transform(df[column].values.reshape(-1, 1))
-        return df.to_dict("records")
+    if column:
+        if ctx.triggered_id=='change-dtype-button':
+            try:
+                df[column]=df[column].astype(dtype)
+                return df.to_dict("records"),html.H6(children=f'Changing the data type to {dtype} was scessfully!',style={'color':f'{colors["Sucess"]}'})
+            except: return df.to_dict("records"), html.H6(children=f'Changing the data type to {dtype} was NOT scessfully! It seems the conversation to {dtype} for the column {column} is not possible',style={'color':f'{colors["Error"]}'})
+        if ctx.triggered_id=='label-encode-button':
+            df[column]=preprocessing.LabelEncoder().fit_transform(df[column])
+            return df.to_dict("records"),html.H6(children=f'The Column {column} was Label Encoded sucessfully!',style={'color':f'{colors["Sucess"]}'})
+        if ctx.triggered_id=='standardize-button':
+            df[column]=preprocessing.StandardScaler().fit_transform(df[column].values.reshape(-1, 1))
+            return df.to_dict("records"),html.H6(children=f'The Column {column} was Standardized sucessfully!',style={'color':f'{colors["Sucess"]}'})
+        if ctx.triggered_id=='scale-min/max-button':
+            df[column]=preprocessing.MinMaxScaler().fit_transform(df[column].values.reshape(-1, 1))
+            return df.to_dict("records"),html.H6(children=f'The Column {column} was Scaled sucessfully!',style={'color':f'{colors["Sucess"]}'})
+    else: raise PreventUpdate
     if ctx.triggered_id=='confirm-trans-button':
         if "Scale all columns Min/Max" in checklist: 
             dff=pd.DataFrame(preprocessing.MinMaxScaler().fit_transform(df),columns=df.columns)
-            return dff.to_dict("records")
+            return dff.to_dict("records"),html.H6(children=f'The Data was transformed sucessfully! You can now proceed to the Data Exploration Tab',style={'color':f'{colors["Sucess"]}'})
         if "Standardize all columns" in checklist: 
             dff=pd.DataFrame(preprocessing.MinMaxScaler().fit_transform(df),columns=df.columns)
-            return dff.to_dict("records")
-        else: return df.to_dict("records")
+            return dff.to_dict("records"),html.H6(children=f'The Data was transformed sucessfully! You can now proceed to the Data Exploration Tab',style={'color':f'{colors["Sucess"]}'})
+        else: return df.to_dict("records"),html.H6(children=f'The Data was transformed sucessfully! You can now proceed to the Data Exploration Tab',style={'color':f'{colors["Sucess"]}'})
 
 # Muss umgeschriben werden auf Button fertig von Data Transformation
 @app.callback(Output('Data-exp','children'),
@@ -245,6 +260,8 @@ def update_stats(data,rows,derived_virtual_selected_rows):
 def export_Stats(n_clicks,name,data,save_path):
     if ctx.triggered_id=='export-stats':
         df=pd.DataFrame.from_records(data)
+        if not name:
+            name='stats'
         if save_path:
             path=os.path.join(save_path,f'{name}.csv')
         else:
@@ -414,4 +431,4 @@ def update_Corr_graph(data,rows,derived_virtual_selected_rows,corr_type,title,sa
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
