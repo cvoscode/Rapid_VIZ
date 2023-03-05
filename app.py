@@ -414,4 +414,4 @@ def update_Corr_graph(data,rows,derived_virtual_selected_rows,corr_type,title,sa
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
