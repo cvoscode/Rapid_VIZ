@@ -9,5 +9,5 @@ def style_app():
     external_style=dbc.themes.SKETCHY
     figure_template=load_figure_template("sketchy")
     colors={'Sucess':'Green','Error':'Red'}
-    min_style={'margin':'5px'}
+    min_style={'margin':'2px'}
     return external_style, figure_template,colors,min_style
