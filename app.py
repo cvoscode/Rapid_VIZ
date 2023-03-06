@@ -13,9 +13,11 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import pandas as pd 
 from flask import Flask
+from waitress import serve
 import base64
 import numpy as np
 from sklearn import preprocessing
+import flask
 from utils.styling import style_app
 from utils.read_data import read_data
 dirname=os.path.dirname(__file__)
@@ -126,8 +128,10 @@ def create_Tab8(df):
 def create_Export():
     return dcc.Tab(label='Export Data',id='Export-tab',children=[dbc.Row([dcc.Input(id='Export-name',type='text',placeholder='Name of the Data Export',debounce=True,style=min_style),html.Button('Export Data',id='Export Data',style=min_style),html.Div(id='Export-div')])])
 #----------------------------------------------------------------------------
+server = flask.Flask(__name__)
+app=Dash(__name__,external_stylesheets=[dbc.themes.SKETCHY],suppress_callback_exceptions=True,server=server)
 
-app=Dash(__name__,external_stylesheets=[dbc.themes.SKETCHY],suppress_callback_exceptions=True)
+
 app.layout = dbc.Container([
                     #header
                     dbc.Row([
@@ -465,4 +469,6 @@ def export_data(export,name,rows,derived_virtual_selected_rows,data,save_path):
             return html.H6(children=f'Please provide a file name with the targeted extension. (Supportet are: *.xlsx,*.parquet,*.csv)',style={'color':f'{colors["Error"]}'})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    #app.run(debug=True)
+    app.title="Christoph's Rapid VIZ"
+    serve(app.server, host="127.0.0.1", port=8050)
